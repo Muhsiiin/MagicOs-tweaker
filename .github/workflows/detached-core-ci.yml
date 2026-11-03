@@ -52,7 +52,9 @@ jobs:
         distribution: 'zulu'
 
     - name: Invalidate AGP Manifest Cache
+      working-directory: MagicOs-tweaker
       run: ./gradlew clean --no-build-cache --no-daemon
 
     - name: Force Build with AGP 8.2.2
+      working-directory: MagicOs-tweaker
       run: ./gradlew assembleDebug --no-build-cache --stacktrace

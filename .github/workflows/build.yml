@@ -1,10 +1,11 @@
-name: Android CI Build APK
+name: Android CI Build
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "master" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "master" ]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -15,26 +16,20 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Set up JDK 17
-      uses: actions/setup-java@v5
+      uses: actions/setup-java@v4
       with:
-        distribution: 'zulu'
         java-version: '17'
+        distribution: 'temurin'
+        cache: gradle
 
-    - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v4
-      with:
-        gradle-version: '8.7'
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
 
-    - name: Inject Android SDK Path Location
-      run: |
-        echo "sdk.dir=$ANDROID_HOME" > local.properties
-
-    # Explicitly targets the app module directly to bypass root project indexing bugs
     - name: Build Debug APK
-      run: gradle :app:assembleDebug
+      run: ./gradlew :app:assembleDebug
 
     - name: Upload Debug APK Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: magicos-tweaker-debug-apk
+        name: app-debug
         path: app/build/outputs/apk/debug/app-debug.apk

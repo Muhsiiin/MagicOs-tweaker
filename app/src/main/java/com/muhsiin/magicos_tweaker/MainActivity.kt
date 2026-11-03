@@ -5,6 +5,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -21,7 +23,6 @@ class MainActivity : ComponentActivity() {
         checkShizukuPermission()
     }
 
-    // State tracking variables for our UI
     private var isShizukuAvailable by mutableStateOf(false)
     private var hasPermission by mutableStateOf(false)
 
@@ -78,21 +79,29 @@ fun ShizukuStatusScreen(
     hasPermission: Boolean,
     onRequestPermission: () -> Unit
 ) {
+    var animationScale by remember { mutableStateOf(0.5f) }
+    var consoleLog by remember { mutableStateOf("No tweaks applied yet.") }
+    val scrollState = rememberScrollState()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp),
-        verticalArrangement = Arrangement.Center,
+            .padding(24.dp)
+            .verticalScroll(scrollState),
+        verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Spacer(modifier = Modifier.height(16.dp))
+        
         Text(
             text = "MagicOS Tweaker",
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(bottom = 32.dp)
+            modifier = Modifier.padding(bottom = 24.dp)
         )
 
+        // Status Card
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(
@@ -122,28 +131,109 @@ fun ShizukuStatusScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
-        if (isAvailable && !hasPermission) {
+        if (!isAvailable) {
+            Text(
+                text = "Please open the Shizuku app and start the service first.",
+                color = MaterialTheme.colorScheme.outline,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+        } else if (!hasPermission) {
             Button(
                 onClick = onRequestPermission,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Grant Shell Permission")
             }
-        } else if (!isAvailable) {
-            Text(
-                text = "Please open the Shizuku app and start the service first.",
-                color = MaterialTheme.colorScheme.outline,
-                modifier = Modifier.padding(horizontal = 16.dp)
-            )
         } else {
-            Text(
-                text = "Ready to modify animations!",
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 16.sp
-            )
+            // Tweaks Section Controls
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "Window & Global Animations",
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 18.sp
+                    )
+                    Text(
+                        text = "Current Modifier: ${animationScale}x",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 12.dp)
+                    )
+
+                    Slider(
+                        value = animationScale,
+                        onValueChange = { animationScale = String.format("%.1f", it).toFloat() },
+                        valueRange = 0.0f..2.0f,
+                        steps = 3 // Snaps nicely to 0.0, 0.5, 1.0, 1.5, 2.0
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Button(
+                        onClick = {
+                            consoleLog = TweakerService.setAnimationScale(
+                                animationScale,
+                                animationScale,
+                                animationScale
+                            )
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Apply Speed Tweak")
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        OutlinedButton(onClick = {
+                            animationScale = 0.0f
+                            consoleLog = TweakerService.setAnimationScale(0.0f, 0.0f, 0.0f)
+                        }) { Text("Turn Off") }
+
+                        OutlinedButton(onClick = {
+                            animationScale = 0.5f
+                            consoleLog = TweakerService.setAnimationScale(0.5f, 0.5f, 0.5f)
+                        }) { Text("Super Fast") }
+
+                        OutlinedButton(onClick = {
+                            animationScale = 1.0f
+                            consoleLog = TweakerService.setAnimationScale(1.0f, 1.0f, 1.0f)
+                        }) { Text("Reset Stock") }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Output / Console Log Panel
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = Color.Black)
+            ) {
+                Column(modifier = Modifier.padding(12.dp)) {
+                    Text(
+                        text = "Console Output:",
+                        color = Color.Green,
+                        fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                        fontSize = 12.sp
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = consoleLog,
+                        color = Color.White,
+                        fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                        fontSize = 12.sp
+                    )
+                }
+            }
         }
     }
 }

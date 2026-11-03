@@ -25,10 +25,12 @@ jobs:
         java-version: '17'
         distribution: 'zulu'
 
-    - name: Fix Root Manifest File Explicitly
+    - name: Fix True Nested Manifest File Explicitly
       run: |
-        mkdir -p app/src/main
-        cat << 'EOF' > app/src/main/AndroidManifest.xml
+        # Target the exact folder path Gradle is using
+        mkdir -p MagicOs-tweaker/app/src/main
+        
+        cat << 'EOF' > MagicOs-tweaker/app/src/main/AndroidManifest.xml
         <?xml version="1.0" encoding="utf-8"?>
         <manifest xmlns:android="http://android.com"
             package="com.muhsiin.magicos_tweaker">
@@ -51,5 +53,6 @@ jobs:
         </manifest>
         EOF
 
-    - name: Target Root Module Build
+    - name: Run Gradle from the Correct Directory
+      working-directory: MagicOs-tweaker
       run: gradle :app:assembleDebug --no-build-cache --no-daemon

@@ -15,7 +15,7 @@ jobs:
     - name: Checkout Code Base Flatly
       uses: actions/checkout@v4
       with:
-        submodules: 'false' # Stop the nested recursive loop
+        submodules: 'false'
         fetch-depth: 1
         clean: true
 
@@ -27,10 +27,10 @@ jobs:
 
     - name: Extract Clean Workspace and Patch
       run: |
-        # 1. Create a safe, flat build directory away from the recursive looping structure
-        mkdir -p isolated-build/app/src/main
+        # 1. Create a safe, flat build directory
+        mkdir -p isolated-build/app
         
-        # 2. Copy build definitions and configurations from the root folder if present
+        # 2. Copy build configurations and wrappers
         cp -f build.gradle isolated-build/ 2>/dev/null || true
         cp -f build.gradle.kts isolated-build/ 2>/dev/null || true
         cp -f settings.gradle isolated-build/ 2>/dev/null || true
@@ -38,10 +38,11 @@ jobs:
         cp -rf gradle isolated-build/ 2>/dev/null || true
         cp -f gradlew isolated-build/ 2>/dev/null || true
         
-        # 3. Copy application logic from the target source module into the isolated build folder
-        cp -rf app/* isolated-build/app/ 2>/dev/null || true
+        # 3. FIX HERE: Copy the entire app folder structure properly
+        cp -R app/. isolated-build/app/ 2>/dev/null || true
         
-        # 4. Generate a completely clean, compliant Android Manifest file inside the workspace
+        # 4. Generate the clean, working Android Manifest file
+        mkdir -p isolated-build/app/src/main
         cat << 'EOF' > isolated-build/app/src/main/AndroidManifest.xml
         <?xml version="1.0" encoding="utf-8"?>
         <manifest xmlns:android="http://android.com"
@@ -65,7 +66,7 @@ jobs:
         </manifest>
         EOF
 
-        # 5. Clean up any corrupted project tracking records inside the isolated settings file
+        # 5. Clean up any corrupted submodule configurations
         if [ -f isolated-build/settings.gradle ]; then
           sed -i '/:MagicOs-tweaker/d' isolated-build/settings.gradle
           sed -i '/MagicOs-tweaker/d' isolated-build/settings.gradle
@@ -78,7 +79,6 @@ jobs:
     - name: Execute Standalone Build Pipeline
       working-directory: isolated-build
       run: |
-        # If the repository wrapper script exists, use it; otherwise fallback to the system global installation
         if [ -f ./gradlew ]; then
           chmod +x gradlew
           ./gradlew assembleDebug --no-build-cache --no-daemon

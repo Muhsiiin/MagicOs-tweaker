@@ -26,19 +26,23 @@ jobs:
 
       - name: Execute Clean Manifest Merge & Assemble
         run: |
-          echo "Searching entire repository for gradlew..."
           GRADLEW_PATH=$(find . -name gradlew -print -quit)
-          
           if [ -n "$GRADLEW_PATH" ]; then
             GRADLE_DIR=$(dirname "$GRADLEW_PATH")
-            echo "Found gradlew wrapper at: $GRADLEW_PATH"
             cd "$GRADLE_DIR"
             chmod +x gradlew
             ./gradlew --stop
-            ./gradlew assembleDebug --no-build-cache --stacktrace
+            # Catch raw errors cleanly without the giant stack trace
+            ./gradlew assembleDebug --no-build-cache -q > build_output.log 2>&1 || true
           else
-            echo "Gradle wrapper missing. Falling back to system gradle distribution..."
             sudo apt-get update && sudo apt-get install -y gradle
-            gradle --stop || true
-            gradle assembleDebug --no-build-cache --stacktrace
+            gradle assembleDebug --no-build-cache -q > build_output.log 2>&1 || true
           fi
+          
+          echo "=== CLEAN AGP BREAKAGE LOG ==="
+          if [ -f build_output.log ]; then
+            grep -E "AAPT:|error:|Failure|Manifest merger failed" build_output.log || head -n 40 build_output.log
+          else
+            echo "No log file generated."
+          fi
+          exit 1

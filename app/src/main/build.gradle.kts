@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.magicos_tweaker" // Match your actual package layout
+    namespace = "com.muhsilin.magicos_tweaker"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.magicos_tweaker"
+        applicationId = "com.muhsilin.magicos_tweaker"
         minSdk = 26
         targetSdk = 34
         versionCode = 1
@@ -26,13 +26,25 @@ android {
             )
         }
     }
-    
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    
+
     kotlinOptions {
         jvmTarget = "17"
     }
+}
+
+dependencies {
+    // Hardcoded dependencies to completely bypass the version catalog bug
+    implementation("androidx.core:core-ktx:1.12.0")
+    implementation("androidx.appcompat:appcompat:1.6.1")
+    implementation("com.google.android.material:material:1.11.0")
+    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
+    
+    testImplementation("junit:junit:4.13.2")
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
 }

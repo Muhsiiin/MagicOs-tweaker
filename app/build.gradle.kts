@@ -1,6 +1,6 @@
 plugins {
-    alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
+    id("com.android.application")
+    id("org.jetbrains.kotlin.android")
 }
 
 android {
@@ -55,13 +55,13 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
     implementation("androidx.activity:activity-compose:1.8.2")
     
-    // Explicit Stable Jetpack Compose Framework (Decoupled from BOM to bypass build conflicts)
+    // Explicit Stable Jetpack Compose UI
     implementation("androidx.compose.ui:ui:1.6.5")
     implementation("androidx.compose.ui:ui-graphics:1.6.5")
     implementation("androidx.compose.ui:ui-tooling-preview:1.6.5")
     implementation("androidx.compose.material3:material3:1.2.1")
     
-    // Shizuku core and integration libraries
-    implementation(libs.shizuku.api)
-    implementation(libs.shizuku.provider)
+    // Shizuku libraries hardcoded to ensure completely separate standalone isolation
+    implementation("dev.rikka.shizuku:api:13.1.5")
+    implementation("dev.rikka.shizuku:provider:13.1.5")
 }

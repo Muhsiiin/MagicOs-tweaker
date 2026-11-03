@@ -32,9 +32,20 @@ jobs:
       - name: Execute Clean Manifest Merge & Assemble
         run: |
           echo "Compiling layout configurations..."
-          gradle :app:processDebugMainManifest --stacktrace > manifest_build.log 2>&1 || true
+          # Running without standard stacktraces to stop terminal flooding
+          gradle :app:processDebugMainManifest --no-build-cache > build_run.log 2>&1 || true
           
-          echo "=== COMPLETE RAW MANIFEST LOG ==="
-          cat manifest_build.log
-          echo "================================="
+          echo "=== SEARCHING FOR ANDROID MERGE INSTANCE BLOCKS ==="
+          # Locate the auto-generated merger issue text report file
+          REPORT_FILE=$(find . -name "manifest-merger-*-report.txt" -o -name "manifest-merger-debug-report.txt" -print -quit)
+          
+          if [ -n "$REPORT_FILE" ] && [ -f "$REPORT_FILE" ]; then
+            echo "Found Report at: $REPORT_FILE"
+            grep -A 20 -i "error" "$REPORT_FILE" || tail -n 50 "$REPORT_FILE"
+          else
+            echo "No explicit report file found. Inspecting build output log..."
+            # Print only non-stacktrace lines containing common compilation/manifest errors
+            grep -v "at org.gradle" build_run.log | grep -v "at java." | grep -A 5 -B 2 -i "failed" || head -n 50 build_run.log
+          fi
+          echo "==================================================="
           exit 1

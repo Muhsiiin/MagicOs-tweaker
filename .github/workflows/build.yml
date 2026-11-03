@@ -14,7 +14,7 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v4
       with:
-        submodules: 'recursive'
+        submodules: false # Do not pull external broken submodules
 
     - name: Set up JDK 17
       uses: actions/setup-java@v4
@@ -23,9 +23,14 @@ jobs:
         distribution: 'temurin'
         cache: gradle
 
-    - name: Global Search and Nuke All Manifests
+    - name: Purge External Submodule Manifests
       run: |
-        cat << 'EOF' > /tmp/perfect_manifest.xml
+        # Brutally clean the directory space of anything matching legacy layouts
+        find . -mindepth 2 -name "AndroidManifest.xml" -type f -delete || true
+        
+        # Write our clean manifest directly into the local app folder
+        mkdir -p app/src/main
+        cat << 'EOF' > app/src/main/AndroidManifest.xml
         <?xml version="1.0" encoding="utf-8"?>
         <manifest xmlns:android="http://android.com">
             <application
@@ -46,10 +51,6 @@ jobs:
             </application>
         </manifest>
         EOF
-        echo "=== Overwriting all manifests ==="
-        find . -name "AndroidManifest.xml" -type f -exec cp -v /tmp/perfect_manifest.xml {} \;
-        echo "=== Verifying file payload ==="
-        find . -name "AndroidManifest.xml" -type f -exec head -n 5 {} \;
 
     - name: Generate Gradle Wrapper
       run: gradle wrapper --gradle-version 8.2
@@ -58,4 +59,4 @@ jobs:
       run: chmod +x gradlew
 
     - name: Build Debug APK with Gradle
-      run: ./gradlew assembleDebug
+      run: ./gradlew :app:assembleDebug

@@ -19,10 +19,10 @@ jobs:
         fetch-depth: 0
         clean: true
 
-    - name: Overwrite Broken Submodule Manifest
+    - name: Fix Root Manifest File
       run: |
-        mkdir -p MagicOs-tweaker/app/src/main
-        cat << 'EOF' > MagicOs-tweaker/app/src/main/AndroidManifest.xml
+        mkdir -p app/src/main
+        cat << 'EOF' > app/src/main/AndroidManifest.xml
         <?xml version="1.0" encoding="utf-8"?>
         <manifest xmlns:android="http://android.com"
             package="com.muhsiin.magicos_tweaker">
@@ -52,9 +52,7 @@ jobs:
         distribution: 'zulu'
 
     - name: Invalidate AGP Manifest Cache
-      working-directory: MagicOs-tweaker
-      run: ./gradlew clean --no-build-cache --no-daemon
+      run: gradle clean --no-build-cache --no-daemon
 
     - name: Force Build with AGP 8.2.2
-      working-directory: MagicOs-tweaker
-      run: ./gradlew assembleDebug --no-build-cache --stacktrace
+      run: gradle assembleDebug --no-build-cache --stacktrace

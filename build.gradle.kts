@@ -1,12 +1,4 @@
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
-
-buildscript {
-    dependencies {
-        // Keeps plugins registered globally without breaking security locks
-        classpath("com.android.tools.build:gradle:8.3.2")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.23")
-    }
-}
+// Top-level build file. All plugins and repositories are centrally managed in settings.gradle.kts
 
 tasks.register<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)

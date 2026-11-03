@@ -1,30 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://android.com">
+<manifest xmlns:android="http://android.com"
+    package="com.example.magicos_tweaker">
 
     <application
         android:allowBackup="true"
-        android:icon="@android:drawable/sym_def_app_icon"
-        android:label="MagicOS Tweaker"
-        android:roundIcon="@android:drawable/sym_def_app_icon"
+        android:icon="@mipmap/ic_launcher"
+        android:label="MagicOs-tweaker"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@android:style/Theme.Material.Light.NoActionBar">
-        
+        android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+
         <activity
-            android:name="com.muhsiin.magicos_tweaker.MainActivity"
-            android:exported="true"
-            android:label="MagicOS Tweaker">
+            android:name=".MainActivity"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
-        <provider
-            android:name="rikka.shizuku.ShizukuProvider"
-            android:authorities="com.muhsiin.magicos_tweaker.shizuku"
-            android:exported="false"
-            android:multiprocess="false" />
-            
     </application>
 
 </manifest>

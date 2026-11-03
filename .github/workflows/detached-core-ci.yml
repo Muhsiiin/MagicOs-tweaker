@@ -31,17 +31,10 @@ jobs:
 
       - name: Execute Clean Manifest Merge & Assemble
         run: |
-          echo "Compiling layout module configurations..."
-          # Run with --info flag so AGP outputs the explicit manifest merge failure reasons
-          gradle :app:processDebugMainManifest --info > manifest_build.log 2>&1 || true
+          echo "Compiling layout configurations..."
+          gradle :app:processDebugMainManifest --stacktrace > manifest_build.log 2>&1 || true
           
-          echo "=== EXPLICIT MANIFEST MERGE CONFLICT REPORT ==="
-          if grep -q "Manifest merger failed" manifest_build.log; then
-            # Extract the actual structural error details below the merge failure block
-            grep -A 25 "Manifest merger failed" manifest_build.log
-          else
-            # Fallback to outputting lines highlighting missing configurations or attributes
-            grep -i -E "error:|is missing|attribute|mismatch|conflict" manifest_build.log | head -n 40
-          fi
-          echo "================================================"
+          echo "=== COMPLETE RAW MANIFEST LOG ==="
+          cat manifest_build.log
+          echo "================================="
           exit 1

@@ -81,7 +81,7 @@ jobs:
       run: |
         if [ -f ./gradlew ]; then
           chmod +x gradlew
-          ./gradlew assembleDebug --warning-mode none --no-build-cache --no-daemon
+          ./gradlew assembleDebug --info --no-build-cache --no-daemon
         else
-          gradle assembleDebug --warning-mode none --no-build-cache --no-daemon
+          gradle assembleDebug --info --no-build-cache --no-daemon
         fi

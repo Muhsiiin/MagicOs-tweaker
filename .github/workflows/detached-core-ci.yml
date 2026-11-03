@@ -26,15 +26,19 @@ jobs:
 
       - name: Execute Clean Manifest Merge & Assemble
         run: |
-          GRADLEW_PATH=$(find . -name gradlew -maxdepth 3 -print -quit)
-          if [ -z "$GRADLEW_PATH" ]; then
-            echo "Error: gradlew file not found anywhere in the workspace up to 3 levels deep."
-            exit 1
+          echo "Searching entire repository for gradlew..."
+          GRADLEW_PATH=$(find . -name gradlew -print -quit)
+          
+          if [ -n "$GRADLEW_PATH" ]; then
+            GRADLE_DIR=$(dirname "$GRADLEW_PATH")
+            echo "Found gradlew wrapper at: $GRADLEW_PATH"
+            cd "$GRADLE_DIR"
+            chmod +x gradlew
+            ./gradlew --stop
+            ./gradlew assembleDebug --no-build-cache --stacktrace
+          else
+            echo "Gradle wrapper missing. Falling back to system gradle distribution..."
+            sudo apt-get update && sudo apt-get install -y gradle
+            gradle --stop || true
+            gradle assembleDebug --no-build-cache --stacktrace
           fi
-          GRADLE_DIR=$(dirname "$GRADLEW_PATH")
-          echo "Found gradlew at: $GRADLEW_PATH"
-          echo "Switching to directory: $GRADLE_DIR"
-          cd "$GRADLE_DIR"
-          chmod +x gradlew
-          ./gradlew --stop
-          ./gradlew assembleDebug --no-build-cache --stacktrace

@@ -12,10 +12,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Code Base
+    - name: Checkout Code Base Flatly
       uses: actions/checkout@v4
       with:
-        submodules: 'recursive'
+        submodules: 'false' # Stop the nested recursive loop
         fetch-depth: 1
         clean: true
 
@@ -25,36 +25,63 @@ jobs:
         java-version: '17'
         distribution: 'zulu'
 
-    - name: Force Patch Deep Submodule Directory Manifest
+    - name: Extract Clean Workspace and Patch
       run: |
-        # Explicitly build out the exact target paths in the workspace
-        mkdir -p app/src/main
-        mkdir -p MagicOs-tweaker/app/src/main
+        # 1. Create a safe, flat build directory away from the recursive looping structure
+        mkdir -p isolated-build/app/src/main
         
-        MANIFEST_CONTENT="<?xml version=\"1.0\" encoding=\"utf-8\"?>
-        <manifest xmlns:android=\"http://android.com\"
-            package=\"com.muhsiin.magicos_tweaker\">
+        # 2. Copy build definitions and configurations from the root folder if present
+        cp -f build.gradle isolated-build/ 2>/dev/null || true
+        cp -f build.gradle.kts isolated-build/ 2>/dev/null || true
+        cp -f settings.gradle isolated-build/ 2>/dev/null || true
+        cp -f settings.gradle.kts isolated-build/ 2>/dev/null || true
+        cp -rf gradle isolated-build/ 2>/dev/null || true
+        cp -f gradlew isolated-build/ 2>/dev/null || true
+        
+        # 3. Copy application logic from the target source module into the isolated build folder
+        cp -rf app/* isolated-build/app/ 2>/dev/null || true
+        
+        # 4. Generate a completely clean, compliant Android Manifest file inside the workspace
+        cat << 'EOF' > isolated-build/app/src/main/AndroidManifest.xml
+        <?xml version="1.0" encoding="utf-8"?>
+        <manifest xmlns:android="http://android.com"
+            package="com.muhsiin.magicos_tweaker">
             <application
-                android:allowBackup=\"true\"
-                android:icon=\"@mipmap/ic_launcher\"
-                android:label=\"@string/app_name\"
-                android:roundIcon=\"@mipmap/ic_launcher_round\"
-                android:supportsRtl=\"true\"
-                android:theme=\"@style/Theme.MagicOsTweaker\">
+                android:allowBackup="true"
+                android:icon="@mipmap/ic_launcher"
+                android:label="@string/app_name"
+                android:roundIcon="@mipmap/ic_launcher_round"
+                android:supportsRtl="true"
+                android:theme="@style/Theme.MagicOsTweaker">
                 <activity
-                    android:name=\".MainActivity\"
-                    android:exported=\"true\">
+                    android:name=".MainActivity"
+                    android:exported="true">
                     <intent-filter>
-                        <action android:name=\"android.intent.action.MAIN\" />
-                        <category android:name=\"android.intent.category.LAUNCHER\" />
+                        <action android:name="android.intent.action.MAIN" />
+                        <category android:name="android.intent.category.LAUNCHER" />
                     </intent-filter>
                 </activity>
             </application>
-        </manifest>"
+        </manifest>
+        EOF
 
-        # Overwrite all manifestations right before execution
-        echo "$MANIFEST_CONTENT" > app/src/main/AndroidManifest.xml
-        echo "$MANIFEST_CONTENT" > MagicOs-tweaker/app/src/main/AndroidManifest.xml
+        # 5. Clean up any corrupted project tracking records inside the isolated settings file
+        if [ -f isolated-build/settings.gradle ]; then
+          sed -i '/:MagicOs-tweaker/d' isolated-build/settings.gradle
+          sed -i '/MagicOs-tweaker/d' isolated-build/settings.gradle
+        fi
+        if [ -f isolated-build/settings.gradle.kts ]; then
+          sed -i '/:MagicOs-tweaker/d' isolated-build/settings.gradle.kts
+          sed -i '/MagicOs-tweaker/d' isolated-build/settings.gradle.kts
+        fi
 
-    - name: Target Submodule Context Project Build
-      run: gradle assembleDebug -p MagicOs-tweaker --no-build-cache --no-daemon
+    - name: Execute Standalone Build Pipeline
+      working-directory: isolated-build
+      run: |
+        # If the repository wrapper script exists, use it; otherwise fallback to the system global installation
+        if [ -f ./gradlew ]; then
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-build-cache --no-daemon
+        else
+          gradle assembleDebug --no-build-cache --no-daemon
+        fi

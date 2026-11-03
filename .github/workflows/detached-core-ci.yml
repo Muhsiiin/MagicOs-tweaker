@@ -27,9 +27,18 @@ jobs:
       - name: Provision Modern Android Gradle Distribution
         uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: '8.2' # Uses the stable release engine for AGP 8.2.2
+          gradle-version: '8.2'
 
       - name: Execute Clean Manifest Merge & Assemble
         run: |
           echo "Compiling layout module configurations..."
-          gradle :app:assembleDebug --no-build-cache --stacktrace
+          gradle :app:assembleDebug --no-build-cache > build_debug.log 2>&1 || true
+          
+          echo "=== ACTUAL MANIFEST MERGER / AAPT ERROR ==="
+          if grep -q "What went wrong:" build_debug.log; then
+            sed -n '/What went wrong:/,/Get more help at/p' build_debug.log
+          else
+            grep -i -E "error|failed|exception|manifest|line" build_debug.log | head -n 40
+          fi
+          echo "=========================================="
+          exit 1

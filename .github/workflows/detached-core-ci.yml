@@ -18,26 +18,9 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'zulu'
-
-      - name: Execute Clean Manifest Merge & Assemble
+      - name: Locate Android Build Configuration Files
         run: |
-          sudo apt-get update -qq && sudo apt-get install -y -qq gradle
-          
-          echo "Running build..."
-          gradle build -x test --no-build-cache > full_build.log 2>&1 || true
-          
-          echo "=== EXTRACTED GRADLE FAILURE ==="
-          if grep -q "What went wrong:" full_build.log; then
-            # Print from "What went wrong:" up to the end of that descriptive block
-            sed -n '/What went wrong:/,/Get more help at/p' full_build.log
-          else
-            # Fallback if block matching misses: show raw lines containing errors
-            grep -i -E "error|failed|exception|cause" full_build.log | head -n 40
-          fi
+          echo "=== LOCATING ALL BUILD FILES ==="
+          find . -name "build.gradle" -o -name "build.gradle.kts" -o -name "settings.gradle" -o -name "settings.gradle.kts"
           echo "================================="
           exit 1

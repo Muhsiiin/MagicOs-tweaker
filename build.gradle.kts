@@ -5,11 +5,9 @@ plugins {
     alias(libs.plugins.kotlin.android) apply false
 }
 
+// Repositories are managed centrally in settings.gradle.kts; keeping this block clean prevents conflicts.
 allprojects {
-    repositories {
-        google()
-        mavenCentral()
-    }
+    // Left blank intentionally
 }
 
 tasks.register<Delete>("clean") {

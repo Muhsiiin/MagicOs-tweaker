@@ -38,7 +38,7 @@ jobs:
         cp -rf gradle isolated-build/ 2>/dev/null || true
         cp -f gradlew isolated-build/ 2>/dev/null || true
         
-        # 3. FIX HERE: Copy the entire app folder structure properly
+        # 3. Copy the entire app folder structure properly
         cp -R app/. isolated-build/app/ 2>/dev/null || true
         
         # 4. Generate the clean, working Android Manifest file
@@ -81,7 +81,7 @@ jobs:
       run: |
         if [ -f ./gradlew ]; then
           chmod +x gradlew
-          ./gradlew assembleDebug --no-build-cache --no-daemon
+          ./gradlew assembleDebug --warning-mode none --no-build-cache --no-daemon
         else
-          gradle assembleDebug --no-build-cache --no-daemon
+          gradle assembleDebug --warning-mode none --no-build-cache --no-daemon
         fi

@@ -26,21 +26,12 @@ jobs:
 
       - name: Execute Clean Manifest Merge & Assemble
         run: |
-          # Step 1: Install Gradle fallback package quickly
           sudo apt-get update -qq && sudo apt-get install -y -qq gradle
           
-          echo "=== DISCOVERING VALID TASKS ==="
-          gradle tasks --all > available_tasks.log 2>&1 || true
+          echo "Compiling structure and writing log..."
+          gradle build -x test --no-build-cache --stacktrace > full_build.log 2>&1 || true
           
-          # Step 2: Auto-detect nested build components or project names
-          if grep -q ":app:assembleDebug" available_tasks.log; then
-            echo "Detected app sub-module project execution routing..."
-            gradle :app:assembleDebug --no-build-cache --stacktrace
-          elif grep -q "assembleDebug" available_tasks.log; then
-            echo "Discovered alternative target assembly location routing..."
-            TARGET_TASK=$(grep "assembleDebug" available_tasks.log | head -n 1 | awk '{print $1}')
-            gradle $TARGET_TASK --no-build-cache --stacktrace
-          else
-            echo "No explicit android debug assembly found at root. Compiling available project structures..."
-            gradle build -x test --no-build-cache --stacktrace
-          fi
+          echo "=== CORE SOURCE COMPILE ERROR ==="
+          tail -n 60 full_build.log
+          echo "=== END LOG ==="
+          exit 1

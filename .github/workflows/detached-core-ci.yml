@@ -5,7 +5,7 @@ on:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
-  workflow_dispatch: # Allows manual trigger via web UI
+  workflow_dispatch:
 
 jobs:
   clean-build:
@@ -16,7 +16,7 @@ jobs:
         with:
           clean: true
           submodules: recursive
-          fetch-depth: 0 # Pulls full history to overwrite nested submodule states
+          fetch-depth: 0
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -24,13 +24,17 @@ jobs:
           java-version: '17'
           distribution: 'zulu'
 
-      # CAUTION: Caching is completely omitted here to stop the ghost layout errors
-
-      - name: Force Grandchild Manifest Sync
-        run: |
-          echo "Purging gradle daemon cache..."
-          ./gradlew --stop
-          chmod +x gradlew
-
       - name: Execute Clean Manifest Merge & Assemble
-        run: ./gradlew assembleDebug --no-build-cache --stacktrace
+        run: |
+          GRADLEW_PATH=$(find . -name gradlew -maxdepth 3 -print -quit)
+          if [ -z "$GRADLEW_PATH" ]; then
+            echo "Error: gradlew file not found anywhere in the workspace up to 3 levels deep."
+            exit 1
+          fi
+          GRADLE_DIR=$(dirname "$GRADLEW_PATH")
+          echo "Found gradlew at: $GRADLEW_PATH"
+          echo "Switching to directory: $GRADLE_DIR"
+          cd "$GRADLE_DIR"
+          chmod +x gradlew
+          ./gradlew --stop
+          ./gradlew assembleDebug --no-build-cache --stacktrace

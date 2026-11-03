@@ -28,10 +28,16 @@ jobs:
         run: |
           sudo apt-get update -qq && sudo apt-get install -y -qq gradle
           
-          echo "Compiling structure and writing log..."
-          gradle build -x test --no-build-cache --stacktrace > full_build.log 2>&1 || true
+          echo "Running build..."
+          gradle build -x test --no-build-cache > full_build.log 2>&1 || true
           
-          echo "=== CORE SOURCE COMPILE ERROR ==="
-          tail -n 60 full_build.log
-          echo "=== END LOG ==="
+          echo "=== EXTRACTED GRADLE FAILURE ==="
+          if grep -q "What went wrong:" full_build.log; then
+            # Print from "What went wrong:" up to the end of that descriptive block
+            sed -n '/What went wrong:/,/Get more help at/p' full_build.log
+          else
+            # Fallback if block matching misses: show raw lines containing errors
+            grep -i -E "error|failed|exception|cause" full_build.log | head -n 40
+          fi
+          echo "================================="
           exit 1

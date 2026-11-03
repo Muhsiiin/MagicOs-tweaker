@@ -1,0 +1,36 @@
+name: MagicOs Core Detached CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch: # Allows manual trigger via web UI
+
+jobs:
+  clean-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Hard Checkout & Deep Clean
+        uses: actions/checkout@v4
+        with:
+          clean: true
+          submodules: recursive
+          fetch-depth: 0 # Pulls full history to overwrite nested submodule states
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'zulu'
+
+      # CAUTION: Caching is completely omitted here to stop the ghost layout errors
+
+      - name: Force Grandchild Manifest Sync
+        run: |
+          echo "Purging gradle daemon cache..."
+          ./gradlew --stop
+          chmod +x gradlew
+
+      - name: Execute Clean Manifest Merge & Assemble
+        run: ./gradlew assembleDebug --no-build-cache --stacktrace

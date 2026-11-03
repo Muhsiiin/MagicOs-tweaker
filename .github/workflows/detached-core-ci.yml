@@ -26,23 +26,21 @@ jobs:
 
       - name: Execute Clean Manifest Merge & Assemble
         run: |
-          GRADLEW_PATH=$(find . -name gradlew -print -quit)
-          if [ -n "$GRADLEW_PATH" ]; then
-            GRADLE_DIR=$(dirname "$GRADLEW_PATH")
-            cd "$GRADLE_DIR"
-            chmod +x gradlew
-            ./gradlew --stop
-            # Catch raw errors cleanly without the giant stack trace
-            ./gradlew assembleDebug --no-build-cache -q > build_output.log 2>&1 || true
-          else
-            sudo apt-get update && sudo apt-get install -y gradle
-            gradle assembleDebug --no-build-cache -q > build_output.log 2>&1 || true
-          fi
+          # Step 1: Install Gradle fallback package quickly
+          sudo apt-get update -qq && sudo apt-get install -y -qq gradle
           
-          echo "=== CLEAN AGP BREAKAGE LOG ==="
-          if [ -f build_output.log ]; then
-            grep -E "AAPT:|error:|Failure|Manifest merger failed" build_output.log || head -n 40 build_output.log
+          echo "=== DISCOVERING VALID TASKS ==="
+          gradle tasks --all > available_tasks.log 2>&1 || true
+          
+          # Step 2: Auto-detect nested build components or project names
+          if grep -q ":app:assembleDebug" available_tasks.log; then
+            echo "Detected app sub-module project execution routing..."
+            gradle :app:assembleDebug --no-build-cache --stacktrace
+          elif grep -q "assembleDebug" available_tasks.log; then
+            echo "Discovered alternative target assembly location routing..."
+            TARGET_TASK=$(grep "assembleDebug" available_tasks.log | head -n 1 | awk '{print $1}')
+            gradle $TARGET_TASK --no-build-cache --stacktrace
           else
-            echo "No log file generated."
+            echo "No explicit android debug assembly found at root. Compiling available project structures..."
+            gradle build -x test --no-build-cache --stacktrace
           fi
-          exit 1

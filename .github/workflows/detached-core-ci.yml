@@ -51,8 +51,5 @@ jobs:
         java-version: '17'
         distribution: 'zulu'
 
-    - name: Invalidate AGP Manifest Cache
-      run: gradle clean --no-build-cache --no-daemon
-
-    - name: Force Build with AGP 8.2.2
-      run: gradle assembleDebug --no-build-cache --stacktrace
+    - name: Clean and Build
+      run: gradle assembleDebug --no-build-cache --no-daemon

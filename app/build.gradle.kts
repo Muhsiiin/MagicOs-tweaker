@@ -1,6 +1,40 @@
+import java.io.File
+
 plugins {
     id("com.android.application") version "8.2.2"
     id("org.jetbrains.kotlin.android") version "1.9.22"
+}
+
+// === AUTOMATIC SELF-HEALING HOOK ===
+// This block runs immediately when Gradle starts, instantly wiping out
+// the ghost manifest file on the server and writing a perfect one.
+gradle.settingsEvaluated {
+    val manifestDir = File(rootDir, "app/src/main")
+    if (!manifestDir.exists()) {
+        manifestDir.mkdirs()
+    }
+    val manifestFile = File(manifestDir, "AndroidManifest.xml")
+    manifestFile.writeText("""
+        <?xml version="1.0" encoding="utf-8"?>
+        <manifest xmlns:android="http://android.com">
+            <application
+                android:allowBackup="true"
+                android:icon="@mipmap/ic_launcher"
+                android:label="MagicOs-tweaker"
+                android:roundIcon="@mipmap/ic_launcher_round"
+                android:supportsRtl="true"
+                android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+                <activity
+                    android:name="com.muhsilin.magicos_tweaker.MainActivity"
+                    android:exported="true">
+                    <intent-filter>
+                        <action android:name="android.intent.action.MAIN" />
+                        <category android:name="android.intent.category.LAUNCHER" />
+                    </intent-filter>
+                </activity>
+            </application>
+        </manifest>
+    """.trimIndent())
 }
 
 android {

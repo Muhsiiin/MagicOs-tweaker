@@ -27,7 +27,7 @@ jobs:
       - name: Provision Modern Android Gradle Distribution
         uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: 8.2.2 # Matches your AGP version to perfectly isolate layout errors
+          gradle-version: '8.2' # Uses the stable release engine for AGP 8.2.2
 
       - name: Execute Clean Manifest Merge & Assemble
         run: |

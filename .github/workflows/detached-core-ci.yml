@@ -1,4 +1,4 @@
-name: CI Force Clean
+name: CI Force Clean Diagnostic
 
 on:
   push:
@@ -27,21 +27,15 @@ jobs:
 
     - name: Extract Clean Workspace and Patch
       run: |
-        # 1. Create a safe, flat build directory
         mkdir -p isolated-build/app
-        
-        # 2. Copy build configurations and wrappers
         cp -f build.gradle isolated-build/ 2>/dev/null || true
         cp -f build.gradle.kts isolated-build/ 2>/dev/null || true
         cp -f settings.gradle isolated-build/ 2>/dev/null || true
         cp -f settings.gradle.kts isolated-build/ 2>/dev/null || true
         cp -rf gradle isolated-build/ 2>/dev/null || true
         cp -f gradlew isolated-build/ 2>/dev/null || true
-        
-        # 3. Copy the entire app folder structure properly
         cp -R app/. isolated-build/app/ 2>/dev/null || true
         
-        # 4. Generate the clean, working Android Manifest file
         mkdir -p isolated-build/app/src/main
         cat << 'EOF' > isolated-build/app/src/main/AndroidManifest.xml
         <?xml version="1.0" encoding="utf-8"?>
@@ -66,7 +60,6 @@ jobs:
         </manifest>
         EOF
 
-        # 5. Clean up any corrupted submodule configurations
         if [ -f isolated-build/settings.gradle ]; then
           sed -i '/:MagicOs-tweaker/d' isolated-build/settings.gradle
           sed -i '/MagicOs-tweaker/d' isolated-build/settings.gradle
@@ -81,7 +74,19 @@ jobs:
       run: |
         if [ -f ./gradlew ]; then
           chmod +x gradlew
-          ./gradlew assembleDebug --info --no-build-cache --no-daemon
+          ./gradlew assembleDebug --no-build-cache --no-daemon > build_log.txt 2>&1 || true
         else
-          gradle assembleDebug --info --no-build-cache --no-daemon
+          gradle assembleDebug --no-build-cache --no-daemon > build_log.txt 2>&1 || true
+        fi
+
+        echo "=================== BUILD OUTPUT SUMMARY ==================="
+        tail -n 40 build_log.txt
+
+        echo "=================== EXTRACTED COMPILATION ERRORS ==================="
+        grep -i -E "error:|failed|exception" build_log.txt | head -n 30
+
+        if grep -q "BUILD SUCCESSFUL" build_log.txt; then
+          echo "Build completed successfully!"
+        else
+          exit 1
         fi

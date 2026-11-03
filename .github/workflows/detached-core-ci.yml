@@ -21,6 +21,7 @@ jobs:
 
     - name: Overwrite Broken Submodule Manifest
       run: |
+        mkdir -p MagicOs-tweaker/app/src/main
         cat << 'EOF' > MagicOs-tweaker/app/src/main/AndroidManifest.xml
         <?xml version="1.0" encoding="utf-8"?>
         <manifest xmlns:android="http://android.com"

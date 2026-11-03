@@ -1,6 +1,6 @@
 plugins {
-    id("com.android.application")
-    id("org.jetbrains.kotlin.android")
+    id("com.android.application") version "8.3.2"
+    id("org.jetbrains.kotlin.android") version "1.9.23"
 }
 
 android {
@@ -61,7 +61,7 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview:1.6.5")
     implementation("androidx.compose.material3:material3:1.2.1")
     
-    // Shizuku libraries hardcoded to ensure completely separate standalone isolation
+    // Shizuku libraries hardcoded for standalone isolation
     implementation("dev.rikka.shizuku:api:13.1.5")
     implementation("dev.rikka.shizuku:provider:13.1.5")
 }

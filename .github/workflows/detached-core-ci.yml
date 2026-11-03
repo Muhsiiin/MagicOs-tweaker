@@ -25,13 +25,12 @@ jobs:
         java-version: '17'
         distribution: 'zulu'
 
-    - name: Fix True Nested Manifest File Explicitly
+    - name: Force Patch Deep Submodule Directory Manifest
       run: |
-        # Ensure the directories exist
+        # Explicitly build out the exact target paths in the workspace
         mkdir -p app/src/main
         mkdir -p MagicOs-tweaker/app/src/main
         
-        # Define the proper layout structure
         MANIFEST_CONTENT="<?xml version=\"1.0\" encoding=\"utf-8\"?>
         <manifest xmlns:android=\"http://android.com\"
             package=\"com.muhsiin.magicos_tweaker\">
@@ -53,9 +52,9 @@ jobs:
             </application>
         </manifest>"
 
-        # Overwrite both versions so Gradle can't fail either way
+        # Overwrite all manifestations right before execution
         echo "$MANIFEST_CONTENT" > app/src/main/AndroidManifest.xml
         echo "$MANIFEST_CONTENT" > MagicOs-tweaker/app/src/main/AndroidManifest.xml
 
-    - name: Execute Full Root Compilation
-      run: gradle assembleDebug --no-build-cache --no-daemon
+    - name: Target Submodule Context Project Build
+      run: gradle assembleDebug -p MagicOs-tweaker --no-build-cache --no-daemon

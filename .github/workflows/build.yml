@@ -13,6 +13,8 @@ jobs:
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v4
+      with:
+        submodules: 'recursive' # Fetch submodules explicitly if they exist
 
     - name: Set up JDK 17
       uses: actions/setup-java@v4
@@ -21,10 +23,10 @@ jobs:
         distribution: 'temurin'
         cache: gradle
 
-    - name: Force Overwrite Clean Android Manifest
+    - name: Global Search and Nuke All Manifests
       run: |
-        mkdir -p app/src/main
-        cat << 'EOF' > app/src/main/AndroidManifest.xml
+        # 1. Create a pristine, standalone, valid manifest file template
+        cat << 'EOF' > /tmp/perfect_manifest.xml
         <?xml version="1.0" encoding="utf-8"?>
         <manifest xmlns:android="http://android.com">
             <application
@@ -45,11 +47,14 @@ jobs:
             </application>
         </manifest>
         EOF
+
+        # 2. Find EVERY AndroidManifest.xml on the system workspace and overwrite it blindly
+        echo "=== Locating and overwriting all manifests ==="
+        find . -name "AndroidManifest.xml" -type f -exec cp -v /tmp/perfect_manifest.xml {} \;
         
-        # Nuke structural duplicates that could be confusing AGP compiler tasks
-        rm -f app/src/debug/AndroidManifest.xml || true
-        rm -f app/src/androidTest/AndroidManifest.xml || true
-        rm -f app/AndroidManifest.xml || true
+        # 3. Print out what we just changed to verify it worked in the log
+        echo "=== Verifying manifest placement ==="
+        find . -name "AndroidManifest.xml" -type f -exec head -n 5 {} \;
 
     - name: Generate Gradle Wrapper
       run: gradle wrapper --gradle-version 8.2

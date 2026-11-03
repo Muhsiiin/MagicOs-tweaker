@@ -1,6 +1,6 @@
 plugins {
-    id("com.android.application") version "8.3.2"
-    id("org.jetbrains.kotlin.android") version "1.9.23"
+    id("com.android.application")
+    id("org.jetbrains.kotlin.android")
 }
 
 android {
@@ -11,9 +11,8 @@ android {
         applicationId = "com.muhsiin.magicos_tweaker"
         minSdk = 26
         targetSdk = 34
-        // Changing version properties forces GitHub Actions to completely drop old cache states
         versionCode = 2
-        versionName = "1.1-CLEAN-BUILD"
+        versionName = "1.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -51,18 +50,18 @@ android {
 }
 
 dependencies {
-    // 100% hardcoded strings to fully bypass version catalogs
+    // Explicit framework strings to remain completely decoupled from external catalog configurations
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
     implementation("androidx.activity:activity-compose:1.8.2")
     
-    // Jetpack Compose UI
+    // Stable Jetpack Compose Framework Architecture
     implementation("androidx.compose.ui:ui:1.6.5")
     implementation("androidx.compose.ui:ui-graphics:1.6.5")
     implementation("androidx.compose.ui:ui-tooling-preview:1.6.5")
     implementation("androidx.compose.material3:material3:1.2.1")
     
-    // Shizuku Native Core
+    // Standalone Shizuku library coordinates
     implementation("dev.rikka.shizuku:api:13.1.5")
     implementation("dev.rikka.shizuku:provider:13.1.5")
 }
